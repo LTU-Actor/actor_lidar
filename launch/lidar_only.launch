@@ -1,0 +1,26 @@
+<launch>
+  <node pkg="actor_lidar" type="actor_lidar_node" name="actor_lidar_node">
+    <param name="center_yaw" type="double" value="-1.1271975512" />
+    <!--<param name="center_yaw" type="double" value="-1.25" />-->
+    <param name="hfov" type="double" value="1.15366" />
+
+    <param name="center_pitch" type="double" value="-0.08" />
+    <param name="vfov" type="double" value="0.886627" />
+
+    <param name="frame_top" type="double" value="3.1415" />
+    <param name="frame_bottom" type="double" value="0" />
+
+    <param name="min_radius" type="double" value="0" />
+    <param name="max_radius" type="double" value="100" />
+    <param name="min_height" type="double" value="-10" />
+    <param name="max_height" type="double" value="10" />
+    <param name="zero_height" type="double" value="-0.2" />
+
+    <param name="camera_x" type="double" value="0" />
+    <param name="camera_y" type="double" value="-0.1" />
+    <param name="camera_z" type="double" value="1" />
+
+    <param name="y_roll" type="double" value="0.25" />
+    <param name="x_roll" type="double" value="0" />
+  </node>
+</launch>
