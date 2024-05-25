@@ -1,0 +1,25 @@
+<launch>
+
+  <arg name="serial_port" default="/dev/ttyACM0" />
+  <arg name="frame_id" default="laser" />
+  <arg name="output_smoothed_scan" default="False" />
+
+  <!-- URG Node from Hokuyo -->
+  <node name="urg_node" pkg="urg_node" type="urg_node" output="screen">
+    <param name="ip_address" value=""/>
+    <param name="serial_port" value="$(arg serial_port)"/>
+    <param name="serial_baud" value="115200"/>
+    <param name="frame_id" value="$(arg frame_id)"/>
+    <param name="calibrate_time" value="true"/>
+    <param name="publish_intensity" value="false"/>
+    <param name="publish_multiecho" value="false"/>
+    <param name="angle_min" value="-1.5707963"/>
+    <param name="angle_max" value="1.5707963"/>
+  </node>
+
+  <!-- actor_lidar smoothing and closest point detection -->
+  <node pkg="actor_lidar" type="Lidar2D_node.py" name="lidar_2d_node">
+    <param name="output_smoothed_scan" value="$(arg output_smoothed_scan)"/>
+  </node>
+
+</launch>
