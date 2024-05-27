@@ -14,7 +14,7 @@ generate_dynamic_reconfigure_options(
 )
 
 catkin_package(
- CATKIN_DEPENDS roscpp rospy sensor_msgs std_msgs dynamic_reconfigure
+#  CATKIN_DEPENDS roscpp rospy sensor_msgs std_msgs dynamic_reconfigure
 )
 
 include_directories(

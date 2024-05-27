@@ -16,6 +16,16 @@ from sensor_msgs.msg import LaserScan
 from std_msgs.msg import Float64
 
 
+def dynamic_reconfigure_callback(config, level):
+    """Dynamic Reconfigure Callback"""
+
+    global config_, dyn_rcfg_initialized
+    
+    dyn_rcfg_initialized = True
+    config_ = config
+    return config
+
+
 class Lidar2DProcessor:
     def __init__(self):
         """Initialize the 2D Lidar Node"""
@@ -24,13 +34,12 @@ class Lidar2DProcessor:
         rospy.loginfo("2D Lidar Node Initialized")
 
         # Dynamic reconfiguration server
-        Server(Lidar2DConfig, self.dynamic_reconfigure_callback)
-        self.dyn_rcfg_initialized = False
+        Server(Lidar2DConfig, dynamic_reconfigure_callback)
 
         # Waiting for dynamic reconfigure to spin up
-        while not rospy.is_shutdown() and not self.dyn_rcfg_initialized:
+        while not rospy.is_shutdown() and not dyn_rcfg_initialized:
             rospy.logwarn("Waiting for dynamic reconfigure to spin up...")
-            rospy.sleep(0.1)
+            rospy.sleep(1)
 
         # Initialize variables
         self.closest_point = -1.0
@@ -52,13 +61,6 @@ class Lidar2DProcessor:
         except rospy.ROSInterruptException:
             rospy.loginfo("actor_control node shutting down.")
 
-    def dynamic_reconfigure_callback(self, config, level):
-        """Dynamic Reconfigure Callback"""
-
-        self.dyn_rcfg_initialized = True
-        self.config_ = config
-        return config
-
     def laser_callback(self, laser_scan_msg):
         """Process Laser Scan Data using numpy"""
 
@@ -66,9 +68,9 @@ class Lidar2DProcessor:
         scan = np.array(laser_scan_msg.ranges)
 
         # Filter laser scan data for boundary cases using numpy
-        scan[np.isnan(scan)] = self.config_.max_range  # Replace NaN values with max_range
-        scan[np.isinf(scan)] = self.config_.max_range  # Replace Inf values with max_range
-        scan[scan < self.config_.min_range] = self.config_.max_range  # Replace values below min_range with max_range
+        scan[np.isnan(scan)] = config_.max_range  # Replace NaN values with max_range
+        scan[np.isinf(scan)] = config_.max_range  # Replace Inf values with max_range
+        scan[scan < config_.min_range] = config_.max_range  # Replace values below min_range with max_range
 
         # Publish smoothed laser scan data
         if self.output_smoothed_scan:
@@ -79,15 +81,15 @@ class Lidar2DProcessor:
         # NOTE: Math is in radians and array indices
         total_angles = scan.shape[0]
         center_index = round(
-            (radians(self.config_.center_offset) - laser_scan_msg.angle_min) / laser_scan_msg.angle_increment
+            (radians(config_.center_offset) - laser_scan_msg.angle_min) / laser_scan_msg.angle_increment
         )
-        half_fov_indices = round(radians(self.config_.field_of_view) / (2 * laser_scan_msg.angle_increment))
+        half_fov_indices = round(radians(config_.field_of_view) / (2 * laser_scan_msg.angle_increment))
         start_index = max(center_index - half_fov_indices, 0)
         end_index = min(center_index + half_fov_indices, total_angles)
         fov_scan = scan[start_index:end_index]
 
         # Find the closest object in the FOV
-        self.closest_point = np.min(fov_scan) if fov_scan.shape[0] > 0 else self.config_.max_range
+        self.closest_point = np.min(fov_scan) if fov_scan.shape[0] > 0 else config_.max_range
 
         # Publish the closest object
         closest_point_msg = Float64()
@@ -97,4 +99,5 @@ class Lidar2DProcessor:
 
 if __name__ == "__main__":
     # Initialize ROS node
+    dyn_rcfg_initialized = False
     Lidar2DProcessor()
